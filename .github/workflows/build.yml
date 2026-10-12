@@ -24,10 +24,12 @@ jobs:
         $target = [regex]::Match($csproj, 'net\d+\.\d+-android').Value
         Write-Host "Target framework detected: $target"
         dotnet restore SecureTransferMobile/SecureTransferMobile.csproj
-        dotnet publish SecureTransferMobile/SecureTransferMobile.csproj -f $target -c Release -p:AndroidPackageFormat=apk
+        
+        # در اینجا دستورات فشرده‌سازی و حذف کدهای اضافه (Trim) اعمال شده است
+        dotnet publish SecureTransferMobile/SecureTransferMobile.csproj -f $target -c Release -r android-arm64 -p:PublishTrimmed=true -p:AndroidPackageFormat=apk
 
     - name: Upload Final APK
       uses: actions/upload-artifact@v4
       with:
-        name: GhaemGraph-Android-App
-        path: SecureTransferMobile/bin/Release/**/*.apk
+        name: GhaemGraph-Android-App-Lite
+        path: SecureTransferMobile/bin/Release/**/*-Signed.apk
