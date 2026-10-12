@@ -7,12 +7,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-
-    - name: Install Android Build Tools
+    - name: Install Latest MAUI Workloads
       run: dotnet workload install maui
 
     - name: Create Base Project
@@ -23,14 +18,16 @@ jobs:
         Copy-Item -Path "MainPage.xaml" -Destination "SecureTransferMobile/MainPage.xaml" -Force
         Copy-Item -Path "MainPage.xaml.cs" -Destination "SecureTransferMobile/MainPage.xaml.cs" -Force
 
-    - name: Restore Dependencies
-      run: dotnet restore SecureTransferMobile/SecureTransferMobile.csproj
-
-    - name: Compile and Generate APK
-      run: dotnet publish SecureTransferMobile/SecureTransferMobile.csproj -f net9.0-android -c Release -p:AndroidPackageFormat=apk
+    - name: Auto-Detect Version & Build APK
+      run: |
+        $csproj = Get-Content SecureTransferMobile/SecureTransferMobile.csproj -Raw
+        $target = [regex]::Match($csproj, 'net\d+\.\d+-android').Value
+        Write-Host "Target framework detected: $target"
+        dotnet restore SecureTransferMobile/SecureTransferMobile.csproj
+        dotnet publish SecureTransferMobile/SecureTransferMobile.csproj -f $target -c Release -p:AndroidPackageFormat=apk
 
     - name: Upload Final APK
       uses: actions/upload-artifact@v4
       with:
         name: GhaemGraph-Android-App
-        path: SecureTransferMobile/bin/Release/net9.0-android/*/*-Signed.apk
+        path: SecureTransferMobile/bin/Release/**/*.apk
