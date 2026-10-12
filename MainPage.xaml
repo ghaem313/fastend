@@ -1,0 +1,48 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SecureTransferMobile.MainPage"
+             BackgroundColor="#141220" FlowDirection="RightToLeft">
+    <Grid RowDefinitions="Auto,*">
+        <!-- منوی تب‌های بالا -->
+        <Grid ColumnDefinitions="*,*" HeightRequest="55" BackgroundColor="#1c1a2a">
+            <Button x:Name="BtnTabSend" Text="📤 ارسال" Clicked="TabSend_Clicked" BackgroundColor="#007acc" TextColor="White" CornerRadius="0" FontAttributes="Bold"/>
+            <Button x:Name="BtnTabRecv" Text="📥 دریافت" Grid.Column="1" Clicked="TabRecv_Clicked" BackgroundColor="#1c1a2a" TextColor="Gray" CornerRadius="0" FontAttributes="Bold"/>
+        </Grid>
+
+        <!-- بخش ارسال فایل -->
+        <ScrollView x:Name="ViewSend" Grid.Row="1" Padding="20" IsVisible="True">
+           <VerticalStackLayout Spacing="15">
+               <Label Text="آی‌پی گیرنده:" TextColor="#e6e6f0"/>
+               <Entry x:Name="TxtSendIP" BackgroundColor="#2c2a3a" TextColor="White" Keyboard="Telephone"/>
+               
+               <Label Text="کد امنیتی:" TextColor="#e6e6f0"/>
+               <Entry x:Name="TxtSendCode" BackgroundColor="#2c2a3a" TextColor="White"/>
+               
+               <Button Text="📁 انتخاب فایل از گوشی" Clicked="BtnSelectFile_Clicked" BackgroundColor="#3c3c4b" TextColor="White" HeightRequest="45" CornerRadius="8"/>
+               <Label x:Name="LblSelectedFile" Text="هیچ فایلی انتخاب نشده" TextColor="Gray" HorizontalOptions="Center"/>
+               
+               <Button Text="🚀 شروع ارسال سریع و امن" Clicked="BtnSend_Clicked" BackgroundColor="#32cd32" TextColor="White" HeightRequest="55" CornerRadius="10" FontAttributes="Bold"/>
+               
+               <ProgressBar x:Name="PbSend" Progress="0" ProgressColor="#00ffff" HeightRequest="10"/>
+               <Label x:Name="LblSendStatus" Text="آماده ارسال..." TextColor="Gray" FontSize="12" HorizontalOptions="Center"/>
+               
+               <Editor x:Name="TxtSendLog" IsReadOnly="True" HeightRequest="150" BackgroundColor="#0a0a0f" TextColor="#00ff78" FontFamily="Monospace" FontSize="11"/>
+           </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- بخش دریافت فایل -->
+        <ScrollView x:Name="ViewRecv" Grid.Row="1" Padding="20" IsVisible="False">
+           <VerticalStackLayout Spacing="15">
+               <Button x:Name="BtnStartRecv" Text="🔑 تولید کد و آماده‌سازی" Clicked="BtnStartRecv_Clicked" BackgroundColor="#9370db" TextColor="White" HeightRequest="55" CornerRadius="10" FontAttributes="Bold"/>
+               
+               <Label Text="کد اتصال (برای فرستنده بفرستید):" TextColor="#e6e6f0"/>
+               <Entry x:Name="TxtCodeOut" IsReadOnly="True" BackgroundColor="#2c2a3a" TextColor="White" HorizontalTextAlignment="Center"/>
+               
+               <ProgressBar x:Name="PbRecv" Progress="0" ProgressColor="#00ffff" HeightRequest="10"/>
+               <Label x:Name="LblRecvStatus" Text="منتظر شروع..." TextColor="Gray" FontSize="12" HorizontalOptions="Center"/>
+               
+               <Editor x:Name="TxtRecvLog" IsReadOnly="True" HeightRequest="250" BackgroundColor="#0a0a0f" TextColor="#00ff78" FontFamily="Monospace" FontSize="11"/>
+           </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
