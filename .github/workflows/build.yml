@@ -10,7 +10,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '9.0.x'
 
     - name: Install Android Build Tools
       run: dotnet workload install maui
@@ -23,11 +23,14 @@ jobs:
         Copy-Item -Path "MainPage.xaml" -Destination "SecureTransferMobile/MainPage.xaml" -Force
         Copy-Item -Path "MainPage.xaml.cs" -Destination "SecureTransferMobile/MainPage.xaml.cs" -Force
 
+    - name: Restore Dependencies
+      run: dotnet restore SecureTransferMobile/SecureTransferMobile.csproj
+
     - name: Compile and Generate APK
-      run: dotnet publish SecureTransferMobile/SecureTransferMobile.csproj -f net8.0-android -c Release -p:AndroidPackageFormat=apk
+      run: dotnet publish SecureTransferMobile/SecureTransferMobile.csproj -f net9.0-android -c Release -p:AndroidPackageFormat=apk
 
     - name: Upload Final APK
       uses: actions/upload-artifact@v4
       with:
         name: GhaemGraph-Android-App
-        path: SecureTransferMobile/bin/Release/net8.0-android/*/*-Signed.apk
+        path: SecureTransferMobile/bin/Release/net9.0-android/*/*-Signed.apk
