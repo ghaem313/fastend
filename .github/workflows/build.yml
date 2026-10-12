@@ -1,0 +1,33 @@
+name: Build Android APK
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install Android Build Tools
+      run: dotnet workload install maui
+
+    - name: Create Base Project
+      run: dotnet new maui -n SecureTransferMobile
+
+    - name: Inject Ghaem Graph UI & Logic
+      run: |
+        Copy-Item -Path "MainPage.xaml" -Destination "SecureTransferMobile/MainPage.xaml" -Force
+        Copy-Item -Path "MainPage.xaml.cs" -Destination "SecureTransferMobile/MainPage.xaml.cs" -Force
+
+    - name: Compile and Generate APK
+      run: dotnet publish SecureTransferMobile/SecureTransferMobile.csproj -f net8.0-android -c Release -p:AndroidPackageFormat=apk
+
+    - name: Upload Final APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: GhaemGraph-Android-App
+        path: SecureTransferMobile/bin/Release/net8.0-android/*/*-Signed.apk
