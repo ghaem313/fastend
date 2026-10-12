@@ -14,7 +14,8 @@ namespace SecureTransferMobile;
 
 public partial class MainPage : ContentPage
 {
-    private string filePath = "";
+    // استفاده از متغیر اختصاصی برای دور زدن محدودیت‌های امنیتی فایل در اندروید
+    private FileResult selectedFile;
     const int PORT = 5001;
 
     public MainPage()
@@ -53,7 +54,7 @@ public partial class MainPage : ContentPage
         var result = await FilePicker.Default.PickAsync();
         if (result != null)
         {
-            filePath = result.FullPath;
+            selectedFile = result;
             LblSelectedFile.Text = result.FileName;
         }
     }
@@ -118,7 +119,6 @@ public partial class MainPage : ContentPage
             await ReadExactAsync(netStream, sizeBytes, 8);
             long totalSize = BitConverter.ToInt64(sizeBytes, 0);
 
-            // در اندروید فایل ابتدا در حافظه کش موبایل دانلود می‌شود
             string cachePath = Path.Combine(FileSystem.CacheDirectory, fileName);
             byte[] buffer = new byte[1048576]; 
             int read; long totalRead = 0;
@@ -131,14 +131,13 @@ public partial class MainPage : ContentPage
                 {
                     await fs.WriteAsync(buffer, 0, read);
                     totalRead += read;
-                    if (totalRead % 2097152 < buffer.Length) // آپدیت رابط کاربری هر ۲ مگابایت
+                    if (totalRead % 2097152 < buffer.Length) 
                         UpdateProgress(totalRead, totalSize, PbRecv, LblRecvStatus);
                 }
             }
             UpdateProgress(totalSize, totalSize, PbRecv, LblRecvStatus);
             LogRecv("[✔] دانلود تمام شد.");
             
-            // باز کردن پنجره Share اندروید برای ذخیره فایل در گالری یا مدیریت فایل
             await Share.Default.RequestAsync(new ShareFileRequest { Title = "ذخیره فایل دریافتی", File = new ShareFile(cachePath) });
             listener.Stop();
         }
@@ -148,7 +147,7 @@ public partial class MainPage : ContentPage
 
     private async void BtnSend_Clicked(object sender, EventArgs e)
     {
-        if (string.IsNullOrEmpty(filePath) || string.IsNullOrEmpty(TxtSendIP.Text) || string.IsNullOrEmpty(TxtSendCode.Text)) {
+        if (selectedFile == null || string.IsNullOrEmpty(TxtSendIP.Text) || string.IsNullOrEmpty(TxtSendCode.Text)) {
             LogSend("لطفا فایل، آی‌پی و کد را وارد کنید."); return;
         }
 
@@ -164,8 +163,13 @@ public partial class MainPage : ContentPage
             await client.ConnectAsync(TxtSendIP.Text, PORT);
             
             using NetworkStream netStream = client.GetStream();
-            string fileName = Path.GetFileName(filePath);
-            long totalSize = new FileInfo(filePath).Length;
+            
+            string fileName = selectedFile.FileName;
+            
+            // روش ایمن و بومی اندروید برای خواندن اطلاعات فایل بدون خطای دسترسی
+            using var checkStream = await selectedFile.OpenReadAsync();
+            long totalSize = checkStream.Length;
+            checkStream.Close();
 
             byte[] nameBytes = Encoding.UTF8.GetBytes(fileName);
             await netStream.WriteAsync(BitConverter.GetBytes(nameBytes.Length));
@@ -178,7 +182,8 @@ public partial class MainPage : ContentPage
             LogSend("در حال رمزنگاری و ارسال آنلاین...");
             using (CryptoStream cryptoStream = new CryptoStream(netStream, aes.CreateEncryptor(), CryptoStreamMode.Write))
             using (GZipStream gzipStream = new GZipStream(cryptoStream, CompressionLevel.Fastest))
-            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            // استفاده از Stream محافظت شده موبایل
+            using (Stream fs = await selectedFile.OpenReadAsync())
             {
                 while ((read = await fs.ReadAsync(buffer, 0, buffer.Length)) > 0)
                 {
